@@ -27,6 +27,7 @@ const AddUser = (props) => {
 
     const onChangeEmail = (e) => {
         setEmail(e.target.value)
+        console.log(`Your new value is ${email}`)
         checkAllFilled()
     }
 
@@ -53,7 +54,7 @@ const AddUser = (props) => {
     }
 
     return (
-        <Grid columns={3}>
+        <Grid columns={3} style={{ margin: "2em" }} stackable>
             <Grid.Column>
                 <Button color="red" onClick={() => history.goBack()}><Icon name="arrow left" />Back</Button>
             </Grid.Column>
@@ -75,15 +76,15 @@ const AddUser = (props) => {
                 </Form>
             </Grid.Column>
             <Grid.Column>
-                <Card>
+                <Card style={{ borderRadius: "25px", boxShadow: `0px 0px ${allFilled ? "50px green" : "10px red"}` }}>
                     <Card.Content>
                         <Card.Header>Preview</Card.Header>
                         <Card.Meta>User</Card.Meta>
                         <Card.Description>
                             <ul className="ui list">
-                                <li>First Name: {firstname}</li>
-                                <li>Last Name: {lastname}</li>
-                                <li>Email: {email}</li>
+                                <li>First Name: <strong>{firstname}</strong></li>
+                                <li>Last Name: <strong>{lastname}</strong></li>
+                                <li>Email: <strong>{email}</strong></li>
                                 <Segment>
                                     {!allFilled ?
                                         (<Label color="red" ribbon ><Icon name="lock" />Locked</Label>)

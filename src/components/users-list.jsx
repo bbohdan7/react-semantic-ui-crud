@@ -14,7 +14,8 @@ export default class AllUsers extends React.Component {
             isInfoOpen: false,
             canShowDeleteDialog: false,
             currentUsr: {},
-            counter: 0
+            counter: 0,
+            checkedAll: false
         }
     }
 
@@ -43,7 +44,7 @@ export default class AllUsers extends React.Component {
     loadUsers() {
         UserService.all().then(response => {
             this.setState({
-                users: response.data.map(data => ({ ...data, selected: false }))
+                users: response.data.map(data => ({ ...data, checked: false }))
             })
         }).then(() => console.log(`Result ${JSON.stringify(this.state.users)}`))
     }
@@ -61,14 +62,38 @@ export default class AllUsers extends React.Component {
         this.setState({
             users: this.state.users.map(u => {
                 if (u.id == id)
-                    return ({ ...u, selected: !u.selected })
+                    return ({ ...u, checked: !u.checked })
                 else
                     return ({ ...u })
             })
         })
 
+        console.log(`check all one by one [${this.state.users.filter(u => u.checked).length}, ${this.state.users.length}]`);
+
+        if (this.state.users.filter(u => u.checked).length == this.state.users.length - 1) {
+            this.setState({ checkedAll: true })
+        } else {
+            this.setState({ checkedAll: false })
+        }
+
         console.log(JSON.stringify(this.state.users))
-        console.log(`Now checkbox for ${id} is set to ${e.target.value}`)
+    }
+
+    triggerAllSelection(e) {
+        //this.state.users.map(u => ({ ...u, checked: !u.checked }))
+        if (this.state.users.filter(u => u.checked) != 0 && !this.state.checkedAll) {
+            var checked = this.state.users.filter(u => u.checked)
+            var unchecked = this.state.users.filter(u => !u.checked).map(u => ({ ...u, checked: true }))
+            var all = [...checked, ...unchecked]
+
+            this.setState({ users: all })
+        } else {
+            this.setState({ users: this.state.users.map(u => ({ ...u, checked: !u.checked })) })
+        }
+
+        this.setState({
+            checkedAll: e.target.checked
+        })
     }
 
     componentDidMount() {
@@ -96,11 +121,16 @@ export default class AllUsers extends React.Component {
                                 {this.state.counter}
                             </Label>
                         </Button>
-
+                        <div>
+                            Is Checked {this.state.checkedAll.toString()}
+                        </div>
                         <Table celled stackable>
                             <Table.Header>
                                 <Table.Row>
-                                    <Table.HeaderCell>Select</Table.HeaderCell>
+                                    <Table.HeaderCell>
+                                        <label>{this.state.checkedAll ? ' Unselect all' : ' Select all '}</label><br />
+                                        <input type="checkbox" className="ui checkbox" checked={this.state.checkedAll} label="Select All" onChange={(e) => this.triggerAllSelection(e)} />
+                                    </Table.HeaderCell>
                                     <Table.HeaderCell>ID</Table.HeaderCell>
                                     <Table.HeaderCell>First Name</Table.HeaderCell>
                                     <Table.HeaderCell>Last Name</Table.HeaderCell>
@@ -110,9 +140,9 @@ export default class AllUsers extends React.Component {
                             </Table.Header>
                             <Table.Body>
                                 {this.state.users.map(usr => (
-                                    <Table.Row key={usr.id} active={usr.selected}>
+                                    <Table.Row key={usr.id} active={usr.checked}>
                                         <Table.Cell>
-                                            <Checkbox checked={usr.selected} onChange={(e) => this.changeUsrSelection(e, usr.id)} />
+                                            <Checkbox checked={usr.checked} onChange={(e) => this.changeUsrSelection(e, usr.id)} />
                                         </Table.Cell>
                                         <Table.Cell>{usr.id}</Table.Cell>
                                         <Table.Cell>{usr.firstName}</Table.Cell>
