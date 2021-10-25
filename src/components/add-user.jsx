@@ -36,7 +36,7 @@ const AddUser = (props) => {
     const hideCreateConfirm = () => setShowConfirm(false)
 
     const checkAllFilled = () => {
-        if (firstname && lastname && email) {
+        if (firstname.length > 3 && lastname.length > 3 && email.length > 3) {
             setAllFilled(true)
         } else {
             setAllFilled(false)

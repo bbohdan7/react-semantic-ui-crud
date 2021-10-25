@@ -15,7 +15,8 @@ export default class AllUsers extends React.Component {
             canShowDeleteDialog: false,
             currentUsr: {},
             counter: 0,
-            checkedAll: false
+            checkedAll: false,
+            showDeleteAll: false
         }
     }
 
@@ -41,12 +42,20 @@ export default class AllUsers extends React.Component {
         this.setState({ canShowDeleteDialog: false })
     }
 
+    showDeleteAllModal() {
+        this.setState({ showDeleteAll: true })
+    }
+
+    hideDeleteAllModal() {
+        this.setState({ showDeleteAll: false })
+    }
+
     loadUsers() {
         UserService.all().then(response => {
             this.setState({
                 users: response.data.map(data => ({ ...data, checked: false }))
             })
-        }).then(() => console.log(`Result ${JSON.stringify(this.state.users)}`))
+        })
     }
 
     deleteUser() {
@@ -55,7 +64,12 @@ export default class AllUsers extends React.Component {
                 console.log(response.data);
             })
             .then(() => this.setState({ canShowDeleteDialog: false }))
+            .then(() => this.loadUsers())
 
+    }
+
+    deleteAllSelectedUsers() {
+        this.state.users.filter(u => u.checked).map(u => UserService.delete(u.id).then(() => this.hideDeleteAllModal()).then(() => this.loadUsers()))
     }
 
     changeUsrSelection(e, id) {
@@ -111,7 +125,6 @@ export default class AllUsers extends React.Component {
                 <Grid.Row>
                     <Grid.Column>
                         <h1>All Users</h1>
-
                         <Button as="div" labelPosition="right" id="btn" onClick={() => this.incrementCounter()}>
                             <Button color="red">
                                 <Icon name="heart" />
@@ -125,6 +138,9 @@ export default class AllUsers extends React.Component {
                             Is Checked {this.state.checkedAll.toString()}
                         </div>
                         <Table celled stackable>
+                            <Button color="red" onClick={() => this.showDeleteAllModal()} disabled={this.state.users.filter(u => u.checked).length === 0}>
+                                <Icon name="trash" />Delete Selected
+                            </Button>
                             <Table.Header>
                                 <Table.Row>
                                     <Table.HeaderCell>
@@ -201,6 +217,24 @@ export default class AllUsers extends React.Component {
                             <Modal.Actions>
                                 <Button color="red" onClick={() => this.hideDeleteDialog()}><Icon name="close" />No</Button>
                                 <Button color="green" onClick={() => this.deleteUser()}><Icon name="check" />Yes</Button>
+                            </Modal.Actions>
+                        </Modal>
+
+                        {/* Delete All Selected Modal */}
+                        <Modal size="mini" closeIcon onClose={() => this.hideDeleteAllModal()} onOpen={() => this.showDeleteAllModal()} open={this.state.showDeleteAll}>
+                            <Modal.Header>Are you sure you desire to delete all these users?</Modal.Header>
+                            <Modal.Content>
+                                <Modal.Description>
+                                    <ul>
+                                        {this.state.users.filter(u => u.checked).map(u => (
+                                            <li><strong><u>{u.firstName} {u.lastname}</u></strong> will be removed?</li>
+                                        ))}
+                                    </ul>
+                                </Modal.Description>
+                            </Modal.Content>
+                            <Modal.Actions>
+                                <Button color="red" onClick={() => this.hideDeleteAllModal()}><Icon name="close" />No</Button>
+                                <Button color="green" onClick={() => this.deleteAllSelectedUsers()}><Icon name="close" />Yes</Button>
                             </Modal.Actions>
                         </Modal>
                     </Grid.Column>
